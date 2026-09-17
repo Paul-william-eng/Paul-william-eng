@@ -10,7 +10,14 @@
 ;;;  2. Ajuste a variavel *csv-path* abaixo para o caminho real do arquivo CSV.
 ;;;  3. Teste primeiro em uma copia do desenho - este script insere entidades novas.
 ;;;
-;;; Uso no AutoCAD: comando APPLOAD para carregar o .lsp, depois digite: IMPORTAESFORCOS
+;;; Uso no AutoCAD:
+;;;   1. Comando APPLOAD -> selecione este arquivo -> botao "Load" -> feche a janela.
+;;;   2. Confira na linha de comando se apareceu a mensagem
+;;;      "ImportaEsforcos.lsp carregado..." - isso so confirma que CARREGOU, ainda NAO RODOU.
+;;;   3. Na linha de comando do AutoCAD, digite: IMPORTAESFORCOS  e aperte Enter.
+;;;      (APPLOAD nao executa o comando sozinho, so deixa ele disponivel pra digitar)
+
+(vl-load-com) ;; necessario para as funcoes vlax-/vla- funcionarem
 
 (defun c:IMPORTAESFORCOS ( / *csv-path* f line campos idx x y rot ang kgf blk
                               acadApp acadDoc modelSpace ptIns blkRef atts i att tagPos)
@@ -58,7 +65,8 @@
                 )
               (progn
                 (princ (strcat "\nERRO ao inserir bloco '" blk "' no poste indice " idx
-                                " - verifique se o bloco existe no desenho atual."))
+                                " - detalhe: " (vl-catch-all-error-message blkRef)
+                                " - verifique se o bloco existe no desenho atual (INSERT manual uma vez pra testar)."))
                 (setq erros (1+ erros))
               )
               (progn
