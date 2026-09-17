@@ -37,6 +37,13 @@ Ao processar um DXF novo: primeiro listar todos os nomes de bloco usados em INSE
 - Se o casamento marcador↔poste tiver distância muito fora do padrão do restante do projeto, reportar como suspeito em vez de aceitar.
 - Sempre reportar a proporção real de cobertura (X de Y postes com esforço calculado) — nunca deixar implícito que está completo se não está.
 
+## NÃO calcular esforço/ângulo do zero por geometria pura — testado e reprovado
+Foi tentado (projeto Catunda) inferir o ângulo de deflexão em cada poste a partir só da geometria das polilinhas de cabo (vértice = poste, ângulo entre os dois vãos que se encontram no ponto), pra estender o cálculo aos postes que ainda não tinham esforço/ângulo desenhado. **O teste de validação contra os pontos já calculados corretamente reprovou**: em vários postes o ângulo geométrico calculado ficou 20-80° longe do ângulo real já aprovado (ex.: poste com 84° real deu 1,69° calculado; poste com 43° real deu 92,78°).
+
+Causa raiz: em pontos onde mais de um trecho de cabo se encontra (emendas, reservas técnicas, cruzamento de camadas/layers), a geometria sozinha é ambígua — não dá pra saber por pura distância/coordenada qual par de vãos define o ângulo relevante daquele esforço. Além disso, a fórmula do memorial (T = R×L²/8f) depende da flecha (f), que não está desenhada em lugar nenhum do DXF nem é dedutível só da geometria — vem de tabela de norma (ET 278/2018 / NBR 15214) que não faz parte do desenho.
+
+**Regra permanente desta skill:** não gerar esforço nem ângulo calculado do zero para postes que não têm o marcador já desenhado no DXF. O que É seguro extrair por geometria pura (sem ambiguidade) é o **comprimento do vão** (distância euclidiana entre poste e poste consecutivo na mesma polilinha de cabo) — isso pode ser entregue como apoio para quem for fechar o cálculo manualmente, mas nunca como "esforço calculado". Ver a validação e a extração de vãos feitas no projeto Catunda como referência do método (comparar geometria contra os pontos conhecidos antes de confiar em qualquer extrapolação, em qualquer projeto novo).
+
 ## Modelo de LISP de reinserção
 Ver `references/ImportaEsforcos_template.lsp` (adaptar o nome do bloco e o caminho do CSV para cada projeto). O script:
 - Lê um CSV com colunas: índice do poste, coordenada X, coordenada Y, rotação do bloco, texto do ângulo, texto do esforço, nome do bloco de origem.
